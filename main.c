@@ -240,12 +240,12 @@ void PWM_RESET()
 	//OCR1B = 255;
 }*/
 
-
+/*
 uint16_t GET_PULSE_WIDTH()
 {
 	uint32_t i,result;
 
-/*
+
 	//Wait for the rising edge
 	for(i=0;i<600000;i++)
 	{
@@ -254,7 +254,7 @@ uint16_t GET_PULSE_WIDTH()
 	}
 
 	if(i==600000) return 0xffff; //Indicates time out
-*/
+
 	//High Edge Found
 
 	//Setup Timer1
@@ -323,7 +323,7 @@ int BLOCK_DISTANCE()
 	PWM_SET();
 	
 	//Handle Errors
-	/*if(r==US_ERROR)
+	if(r==US_ERROR)
 	{
 		d = 500;
 		//LCD_CLEAR();
@@ -334,14 +334,14 @@ int BLOCK_DISTANCE()
 		d = 100;
 		//LCD_CLEAR();
 		//LCD_PRINT("Clear!");
-	}*/
-	if (r =! US_ERROR && r =! US_ERROR) 
+	}
+	if (r != US_ERROR && r != US_ERROR) 
 	{
 		d=(r/58.0); //Convert to cm
 	}
 	return d;
 }
-
+*/
 void BOT_STOP()
 {
 	PWM_SET();
@@ -349,7 +349,8 @@ void BOT_STOP()
 	OCR1B = 0;
 	MOTOR_PORT = 0x00;
 }
-void BOT_MOVE(unsigned char direction unsigned char speed)
+//unsigned char speed = 200;
+void BOT_MOVE(unsigned char direction)
 {
 	BOT_STOP();
 	PWM_SET();
@@ -357,24 +358,19 @@ void BOT_MOVE(unsigned char direction unsigned char speed)
 	{
 		case LEFT:
 			OCR1A = 0;
-			OCR1B = speed;
+			OCR1B = 150;
 			//MOTOR_PORT |= 0b00010000; //PIN4=OCR1B
 			break;
 		case RIGHT:
-			OCR1A = speed;
+			OCR1A = 150;
 			OCR1B = 0;
 			//MOTOR_PORT |= 0b00100000; //PIN5=OCR1A
 			break;
 		case FORWARD:
-			OCR1A = speed;
-			OCR1B = speed;
+			OCR1A = 170;
+			OCR1B = 170;
 			//MOTOR_PORT |= 0b00110000;
 			break;
-		case SLOW:
-			OCR1A = speed;
-			OCR1B = speed;
-			//MOTOR_PORT |= 0b00110000;
-			break;	
 		case BACKWARD:
 			OCR1A = 0;
 			OCR1B = 0;
@@ -382,11 +378,11 @@ void BOT_MOVE(unsigned char direction unsigned char speed)
 			break;
 		case LEFT_BACK:
 			OCR1A = 0;
-			OCR1B = speed;
+			OCR1B = 255;
 			MOTOR_PORT |= 0b10000000; //PIN4=OCR1B
 			break;
 		case RIGHT_BACK:
-			OCR1A = speed;
+			OCR1A = 255;
 			OCR1B = 0;
 			MOTOR_PORT |= 0b01000000; //PIN5=OCR1A
 			break;	
@@ -413,7 +409,7 @@ void BLOCK_HOLD(unsigned char direction)
 
 void MOVE_BACK_IF_BLOCK()
 {
-	BOT_MOVE(BACKWARD,255);
+	BOT_MOVE(BACKWARD);
 	_delay_ms(100);
 	BOT_STOP();
 	_delay_ms(100);
@@ -422,11 +418,11 @@ void MOVE_BACK_IF_BLOCK()
 	{
 		//OCR1A = 180;
 		//OCR1B = 180;
-		BOT_MOVE(BACKWARD,255);
+		BOT_MOVE(BACKWARD);
 	}
 	BOT_STOP();
 	_delay_ms(100);
-	BOT_MOVE(FORWARD,200);
+	BOT_MOVE(FORWARD);
 	_delay_ms(210);
 	BOT_STOP();		
 	if(dir == 'N')
@@ -497,6 +493,7 @@ char DETECT_BLOCK()
 {
 	if((SENSOR_PIN & BLOCK_SENSOR_MASK) == 0b00000110 && prev_block_detect == FALSE && block_caught == FALSE)
 	{
+		BOT_STOP();
 		STOP_N_UPDATE_LOC();
 		block_no = 0;
 		BLOCK_RECORD();
@@ -504,6 +501,7 @@ char DETECT_BLOCK()
 	}
 	else if ((SENSOR_PIN & BLOCK_SENSOR_MASK) == 0b00000100 && prev_block_detect == FALSE && block_caught == FALSE)
 	{
+		BOT_STOP();
 		STOP_N_UPDATE_LOC();
 		block_no = 1;
 		BLOCK_RECORD();
@@ -511,6 +509,7 @@ char DETECT_BLOCK()
 	}
 	else if ((SENSOR_PIN & BLOCK_SENSOR_MASK) == 0b00000000 && prev_block_detect == FALSE && block_caught == FALSE)
 	{
+		BOT_STOP();
 		STOP_N_UPDATE_LOC();
 		block_no = 2;
 		BLOCK_RECORD();
@@ -551,40 +550,40 @@ void FOLLOW_LINE_FORWARD()
 			coord_count++;
 			DETECT_NEXT_NODE();
 		}
-		if(BLOCK_DISTANCE() > 13 )
-		{
-			BOT_MOVE(FORWARD,100);
-		}
+		//if(BLOCK_DISTANCE() > 13 )
+		//{
+			//speed = 100;
+		//}
 		//_delay_ms(100);
 	}
 	
 	else if ((SENSOR_PIN & GRID_SENSOR_MASK) == 0b11100000 && prev_count==TRUE)
 	{
-		BOT_MOVE(FORWARD,200);
+		BOT_MOVE(FORWARD);
 	}
 	else if ((SENSOR_PIN & GRID_SENSOR_MASK) == 0b01000000)
 	{
-		BOT_MOVE(FORWARD,200);
+		BOT_MOVE(FORWARD);
 		prev_count = FALSE;
 	}
 	else if ((SENSOR_PIN & GRID_SENSOR_MASK) == 0b11000000)
 	{
-		BOT_MOVE(LEFT,150);
+		BOT_MOVE(LEFT);
 		//prev_count = FALSE;
 	}
 	else if ((SENSOR_PIN & GRID_SENSOR_MASK) == 0b10000000)
 	{
-		BOT_MOVE(LEFT,150);
+		BOT_MOVE(LEFT);
 		//prev_count = FALSE;
 	}
 	else if ((SENSOR_PIN & GRID_SENSOR_MASK) == 0b01100000)
 	{
-		BOT_MOVE(RIGHT,150);
+		BOT_MOVE(RIGHT);
 		//prev_count = FALSE;
 	}
 	else if ((SENSOR_PIN & GRID_SENSOR_MASK) == 0b00100000)
 	{
-		BOT_MOVE(RIGHT,150);
+		BOT_MOVE(RIGHT);
 		//prev_count = FALSE;
 	}
 	else if ((SENSOR_PIN & GRID_SENSOR_MASK) == 0b00000000)
@@ -602,11 +601,11 @@ void FOLLOW_LINE_BACKWARD()
 	}
 	else if (((SENSOR_PIN & GRID_SENSOR_MASK) == 0b11100000 && prev_count==TRUE))
 	{
-		BOT_MOVE(BACKWARD,255);
+		BOT_MOVE(BACKWARD);
 	}
 	else
 	{
-		BOT_MOVE(BACKWARD,255);
+		BOT_MOVE(BACKWARD);
 	}
 }
 
@@ -616,11 +615,11 @@ void TURN_90(unsigned char direction)
 	_delay_ms(100);
 	if(direction == LEFT)
 	{
-		BOT_MOVE(FORWARD,200);
+		BOT_MOVE(FORWARD);
 		_delay_ms(210);
 		BOT_STOP();
 		_delay_ms(100);
-		BOT_MOVE(LEFT_BACK,255);
+		BOT_MOVE(LEFT_BACK);
 		_delay_ms(TURN_90_DELAY);
 		//if((SENSOR_PIN & GRID_SENSOR_MASK) == 0b111000000) BOT_MOVE(LEFT_BACK);
 		//_delay_ms(75);
@@ -644,11 +643,11 @@ void TURN_90(unsigned char direction)
 	
 	else if(direction == RIGHT)
 	{
-		BOT_MOVE(FORWARD,200);
+		BOT_MOVE(FORWARD);
 		_delay_ms(210);
 		BOT_STOP();
 		_delay_ms(100);
-		BOT_MOVE(RIGHT_BACK,255);
+		BOT_MOVE(RIGHT_BACK);
 		_delay_ms(TURN_90_DELAY);
 		//if((SENSOR_PIN & GRID_SENSOR_MASK) == 0b11100000) BOT_MOVE(RIGHT_BACK);
 		//_delay_ms(75);
@@ -675,14 +674,14 @@ void TURN_180()
 {
 	BOT_STOP();
 	_delay_ms(100);
-	BOT_MOVE(FORWARD,200);
+	BOT_MOVE(FORWARD);
 	_delay_ms(210);
 	BOT_STOP();
 	_delay_ms(100);
-	BOT_MOVE(LEFT_BACK,255);
+	BOT_MOVE(LEFT_BACK);
 	_delay_ms(TURN_180_DELAY);
 	BOT_STOP();
-	if((SENSOR_PIN & GRID_SENSOR_MASK) != 0b11100000) BOT_MOVE(LEFT_BACK,255);
+	if((SENSOR_PIN & GRID_SENSOR_MASK) != 0b11100000) BOT_MOVE(LEFT_BACK);
 	_delay_ms(100);
 	BOT_STOP();
 	switch(dir)
@@ -1157,7 +1156,7 @@ void MOVE_TO_NEAREST_BLOCK()
 	}	
 	LCD_CLEAR();
 	LCD_PRINT("Aproach to block");
-	BOT_MOVE(FORWARD,200);
+	BOT_MOVE(FORWARD);
 	_delay_ms(100);
 	BOT_STOP();
 	DIGKSTRA(X,Y,block[j].X,block[j].Y,TRUE);
@@ -1190,7 +1189,7 @@ void MOVE_TO_NEAREST_DESTINATION()
 	details2[destination[dest_coun].X][destination[dest_coun].Y].status = DESTINATION;
 	REMOVE_DESTINATION_OR_BLOCK_FROM_ARRAY(dest_coun,DESTINATION);
 	BOT_STOP();
-	BOT_MOVE(BACKWARD,200); //move little back to place block
+	BOT_MOVE(BACKWARD); //move little back to place block
 	_delay_ms(200);
 	LCD_CLEAR();
 	LCD_PRINT("   Placing @");
@@ -1256,7 +1255,7 @@ int main(void)
 					LCD_CLEAR();
 					LCD_PRINT("BLOCK SEARCH MOD");
 					_delay_ms(1000);
-					BOT_MOVE(FORWARD,200);
+					BOT_MOVE(FORWARD);
 					_delay_ms(100);
 					DETECT_NEXT_NODE();
 				}
